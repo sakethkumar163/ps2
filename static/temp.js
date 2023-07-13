@@ -6,14 +6,14 @@ fd.max = today;
 
 let chart, data, labels;
 
-let map = L.map('map').setView([15.805, 80.9], 10);
+let map = L.map('map').setView([22.390472, 69.628927], 10);
 
 let taskExecuted = false;
 let a = ""
 let z = 1;
 
 function relocate(){
-  map.flyTo([15.805, 80.9], 10);
+  map.flyTo([22.390472, 69.628927], 10);
 }
 
 function performTask(lab, ind) {
@@ -74,7 +74,7 @@ function performTask(lab, ind) {
         y: {
           title: {
             display: true,
-            text:(ind != "Mangrove Analysis") ? "Avg "+ind :"Mangrove Area"
+            text:(ind != "Mangrove Analysis") ? "Avg "+ind :"Mangrove Area(sq.km)"
           }
         }
 
@@ -82,7 +82,7 @@ function performTask(lab, ind) {
       plugins: {
         title: {
           display: true,
-          text: (ind == "Mangrove Analysis") ? "Mangrove Area Change" : ind
+          text: (ind == "Mangrove Analysis") ? "Mangrove Area Change(sq.km)" : ind
         }
       }
     };
@@ -211,10 +211,10 @@ function appendContent(newContent) {
   }catch(error){console.log("No Data Found")}
 }
 
-
+let s=document.getElementById("tcont")
 function send_req(col, send_data) {
   document.getElementById("loader").classList.remove("d-none");
-  window.scrollTo(0, document.body.scrollHeight);
+  s.scrollIntoView({behavior: 'smooth'})
   fetch('/my_flask_route', {
     method: 'POST',
     headers: {
