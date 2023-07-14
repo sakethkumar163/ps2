@@ -34,6 +34,7 @@
     integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
   <script src="https://kit.fontawesome.com/366fe7999d.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.plot.ly/plotly-2.24.1.min.js" charset="utf-8"></script>
 
   <style>
     html,
@@ -212,16 +213,17 @@
         <div id="filter" style="margin-top: 4rem;">
           <div class="row input-group mb-3 mx-0">
             <span class=" input-group-text">From Date</span>
-            <input type="date" class=" form-control" name="fromdate" max="" value="" onchange="OnChange()" />
+            <input type="date" class=" form-control" name="fromdate" max="" value="2019-01-01" onchange="OnChange()" />
             <span class="input-group-text ">To Date</span>
-            <input type="date" class=" form-control" name="todate" max="" value="" onchange="OnChange()" />
+            <input type="date" class=" form-control" name="todate" max="" value="2023-06-30" onchange="OnChange()" />
           </div>
           <div class="row input-group my-4 mx-0">
             <span class=" input-group-text">Select Type of Analysis</span>
             <select class="form-select  " id="calc" name="calc" onchange="OnChange()">
-              <option>NDVI</option>
-              <option>NDWI</option>
+              <option value="NDVI">Vegetation </option>
+              <option value="NDWI">NDWI</option>
               <option selected>Mangrove Analysis</option>
+              <option value="ML Analysis">Mangrove Area Prediction</option>
             </select>
           </div>
         </div>
@@ -242,36 +244,40 @@
       </div>
     </div> -->
     <div class="row" style="margin-top: 3rem;">
-      <div id="mgr" class="ms-4 col" style="width: 30%; display: none; ">
+      <div id="mgr" class="ms-4 col" style="width: 50%; display: none; ">
         <canvas id="chartCanvas" class="w-100" style="height: 294px;"></canvas>
       </div>
-    
-    <!-- <div > -->
-    <!-- <div class="d-flex" style="width: 50%; height: 100%;"> -->
-    <!-- <h3 class="tabhead mt-5 mb-2 d-none" style="text-align: center;">Mangrove Extent Change</h3> -->
-    <div id="tcont" class="overflow-y col" style="display: none;width: 60%;max-height: 230px;">
-      <table class="table">
-        <thead id="thead">
 
-        </thead>
-        <tbody id="tbody">
-
-        </tbody>
-      </table>
+      <!-- <div > -->
+      <!-- <div class="d-flex" style="width: 50%; height: 100%;"> -->
+      <!-- <h3 class="tabhead mt-5 mb-2 d-none" style="text-align: center;">Mangrove Extent Change</h3> -->
+      <div id="tcont" class="overflow-y col" style="display: none;width: 60%;max-height: 230px;">
+        <table class="table">
+          <thead id="thead">
+            
+          </thead>
+          <tbody id="tbody">
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="randomForest" class="col" style="display: none;">
+      <div id="plot-container"></div>
     </div>
   </div>
-  </div>
-    <!-- </div> -->
-    <!-- </div> -->
-    <!-- <div id="lat_lon" class="text-center mt-4"></div> -->
-    <div id="loader" class="spinner-border text-primary d-block mx-auto my-5 d-none" role="status">
-      <span class="visually-hidden"></span>
-    </div>
-    <div id="imgcont" class="d-flex flex-row flex-wrap justify-content-between h-5" style="margin: 1.5rem 0rem;">
-      <!-- <img src="{{ url_for('static', filename = 'my_plot.png') }}" class="d-block mx-auto"> -->
 
-    </div>
-    <!-- <p id="progress-bar"></p> -->
+  <!-- </div> -->
+  <!-- </div> -->
+  <!-- <div id="lat_lon" class="text-center mt-4"></div> -->
+  <div id="loader" class="spinner-border text-primary d-block mx-auto my-5 d-none" role="status">
+    <span class="visually-hidden"></span>
+  </div>
+  <div id="imgcont" class="d-flex flex-row flex-wrap justify-content-between h-5" style="margin: 1.5rem 0rem;">
+    <!-- <img src="{{ url_for('static', filename = 'my_plot.png') }}" class="d-block mx-auto"> -->
+
+  </div>
+  <!-- <p id="progress-bar"></p> -->
   </div>
   <!-- <script src="https://code.jquery.com/jquery-3.6.4.min.js"
     integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script> -->

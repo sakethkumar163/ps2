@@ -45,7 +45,7 @@ function performTask(lab, ind) {
     // var newRow = document.createElement('tr');
 
     // Create the HTML content for the new row
-    tcont.style.display = 'block'
+    //tcont.style.display = 'block'
     var rowContent = `<th scope="row">Analysis</th>` + `<th>Area Name</th>`;
     for (i of lab) {
       rowContent += `<th>${i}</th>`;
@@ -210,7 +210,7 @@ function appendContent(newContent) {
     });
   }catch(error){console.log("No Data Found")}
 }
-
+let klm = 0;
 let s=document.getElementById("tcont")
 function send_req(col, send_data) {
   document.getElementById("loader").classList.remove("d-none");
@@ -245,6 +245,29 @@ function send_req(col, send_data) {
       setTimeout(() => {
         document.getElementsByClassName("alert")[0].style.display = "none"
       }, 7000);
+    }
+    else if (data.plot) {
+      document.getElementById("loader").classList.add("d-none");
+      performTask(data.points.labels, send_data['index']);
+      if (send_data['index'] != a) {
+        a = send_data['index']
+        taskExecuted = false
+      }
+      
+      const plotData = JSON.parse(data.plot);
+      console.log(plotData)
+      document.getElementById('randomForest').style.display = "block"
+      let newContent = `<div id="plot-container-${klm}"></div>`;
+      document.getElementById("plot-container").insertAdjacentHTML("afterbegin", newContent)
+      Plotly.newPlot(`plot-container-${klm}`, plotData);
+      klm++;
+      appendData({
+        label: `${data.area_name}`,
+        data: data.points.actual_values,
+        fill: false,
+        borderColor: `${col}`,
+        tension: 0.1
+      }, data.points.labels)
     }
     else {
       count++;
