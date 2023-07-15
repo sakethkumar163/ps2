@@ -21,6 +21,8 @@ dc = datacube.Datacube(app="04_Plotting")
 
 from geopy.geocoders import Nominatim
 
+
+
 def mangrove_analysis(dataset, mvi):
     ndvi = (dataset.nir - dataset.red) / (dataset.nir + dataset.red)
     # ndwi=(dataset.nir - dataset.swir_1) / (dataset.nir + dataset.swir_1)
@@ -103,7 +105,7 @@ def mang_change(times, query):
     # Plot the change in mangrove extent
     fig, ax = plt.subplots(figsize=(8, 8))
     im = ax.imshow(mangrove_change[-1], cmap=cmap, vmin=-1, vmax=1)
-    ax.set_title(f'Change in Mangrove Extent from {times[0]} to {times[1]}')
+    ax.set_title(f'Change in Mangrove Extent from {times[0]} to {times[-1]}')
     ax.set_xlabel('Easting')
     ax.set_ylabel('Northing')
     cbar = fig.colorbar(im, ax=ax)
@@ -140,7 +142,7 @@ def get_area_name(latitude, longitude):
     else:
         return "City name not found"
 
-def mang_ml_analysis(ds, lat_range, lon_range):
+def mang_ml_analysis(ds, lat_range, lon_range ,colu):
     ndvi = (ds.nir - ds.red) / (ds.nir + ds.red)
     mvi = ds.nir - ds.green / ds.swir_1 - ds.green
     ndvi_threshold = 0.4
@@ -208,16 +210,19 @@ def mang_ml_analysis(ds, lat_range, lon_range):
 
     print("year-month done")
 
+
     plot_data = [
         go.Scatter(
             x = df['year-month'],
             y = df['mangrove'],
-            name = "Mangrove Actual"
+            name = "Mangrove Actual",
+            line=dict(color=colu) 
         ),
         go.Scatter(
             x = df['year-month'],
             y = y_pred,
-            name = "Mangrove Predicted"
+            name = "Mangrove Predicted",
+            line=dict(color='black') 
         )
     ]
 
@@ -251,6 +256,38 @@ app = Flask(__name__)
 def hello_world():
     return render_template("main.html")
 
+@app.route('/data', methods=['GET','POST'])
+def data():
+    if request.method == "POST":
+        # Create a Data Cube instance
+        dc = datacube.Datacube(app='datacube-example')
+
+        # Define the product and query parameters
+        product_name = ['s2a_sen2cor_granule']
+        # query = {'time': ('01-01-2023', '01-07-2023')}
+
+        p = []
+
+    # Search for datasets
+        for j in product_name:
+            datasets = dc.find_datasets(product=j)
+
+            # Check if datasets exist
+            d = []
+            if len(datasets) == 0:
+                print('No datasets found for the specified query parameters.')
+            else:
+                # Retrieve the dataset location
+                for i in datasets:
+                    ds_loc = i.metadata_doc['geometry']['coordinates']
+                    d.append(ds_loc)
+            # my_list = [1, 2, 3, 2, 4, 3, 5, 6, 5]
+            unique_list = [x for i, x in enumerate(d) if x not in d[:i]]
+            p+=unique_list
+        unique_list = [x for i, x in enumerate(p) if x not in p[:i]]
+        return jsonify({'data':unique_list})
+
+
 @app.route('/my_flask_route', methods=['GET', 'POST'])
 def my_flask_function():
     if request.method == "POST":
@@ -261,6 +298,7 @@ def my_flask_function():
         td = request.json['todate']
         fd = request.json['fromdate']
         ind = request.json['index']
+        colu= request.json['colo']
 
         lat_range = (lmin, lmax)
         lon_range = (lnmin, lnmax)
@@ -339,6 +377,77 @@ def my_flask_function():
             # print({'image': img_base64, 'chman': , 'labels': labels, 'data': data, 'area': area_name})
             return jsonify({'image': img_base64, 'labels': labels, 'data': data, 'area': area_name})
         elif(ind=="Mangrove Analysis"):
+            times = labels
+
+            plt.figure(figsize=(8, 8))
+                    # Load the data for the first time period
+            query['time'] = times[0]
+            ds1 = dc.load(**query)
+
+
+            # Compute the MVI for the first time period
+            mangrove1 = ((ds1.nir - ds1.green) / (ds1.swir_1 - ds1.green+0.5))*(1.5)
+            # Set threshold for mangrove detection
+            mangrove_thresh = 0.5
+
+            # Create a mangrove mask
+            mangrove_mask1 = np.where(mangrove1 > mangrove_thresh, 1, 0)
+
+            # Load the data for the second time period
+            query['time'] = times[1]
+            ds2 = dc.load(**query)
+
+            # Compute the MVI for the second time period
+            mangrove2 = ((ds2.nir - ds2.green) / (ds2.swir_1 - ds2.green+0.5))*(1.5)
+            # Create a mangrove mask
+            mangrove_mask2 = np.where(mangrove2 > mangrove_thresh, 1, 0)
+
+            # Compute the change in mangrove extent
+            mangrove_change = mangrove_mask2 - mangrove_mask1
+
+            # Create a colormap
+            cmap = plt.get_cmap('PiYG')
+
+            # Create a figure with subplots
+            fig, (ax_change, ax_subset1, ax_subset2) = plt.subplots(1, 3, figsize=(18, 6))
+
+            # Plot the change in mangrove extent on the first subplot
+            im_change = ax_change.imshow(mangrove_change[-1], cmap=cmap, vmin=-1, vmax=1)
+            ax_change.set_title(f'Change in Mangrove Extent from {times[0]} to {times[-1]}')
+            ax_change.set_xlabel('Easting')
+            ax_change.set_ylabel('Northing')
+            cbar_change = fig.colorbar(im_change, ax=ax_change)
+            cbar_change.ax.set_ylabel('Change in Mangrove Extent')
+            ax_change.legend(
+                [
+                    Patch(facecolor='lime'),
+                    Patch(facecolor='fuchsia'),
+                    Patch(facecolor="palegoldenrod"),
+                ],
+                ["New mangroves", "Loss of mangroves", "Stable Mangroves"],
+                loc="lower right"
+            )
+
+            # Plot the subset images on the second and third subplots
+            subset1 = index.isel(time=0)
+            subset1.plot(ax=ax_subset1, vmin=mi, vmax=ma, cmap=col)
+            ax_subset1.set_title(f'{times[0]}')
+
+            subset2 = index.isel(time=-1)
+            subset2.plot(ax=ax_subset2, vmin=mi, vmax=ma, cmap=col)
+            ax_subset2.set_title(f'{times[-1]}')
+
+            # Adjust spacing between subplots
+            fig.tight_layout()
+
+            # Save the plot to an image buffer
+            img_buffer = io.BytesIO()
+            plt.savefig(img_buffer, format='png')
+            img_buffer.seek(0)
+
+            # Convert the image buffer to base64 for display or further processing
+            img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
+            return jsonify({'image': img_base64, 'labels': labels, 'data': data, 'area': area_name})
             masked_ds = index.copy()
             masked_ds = masked_ds.where(~np.isinf(masked_ds), drop=False)
             masked_ds_mean = masked_ds.mean(dim=['x', 'y'], skipna=True)
@@ -357,7 +466,7 @@ def my_flask_function():
             return jsonify({'image': img_base64, 'chman': mang_change(labels, query), 'labels': labels, 'data': data, 'area': area_name})
     # Calculate the components that make up the NDVI calculation
         else:
-            a = mang_ml_analysis(dataset, lat_range, lon_range)
+            a = mang_ml_analysis(dataset, lat_range, lon_range ,colu)
             return jsonify(a)
 
 

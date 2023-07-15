@@ -220,10 +220,10 @@
           <div class="row input-group my-4 mx-0">
             <span class=" input-group-text">Select Type of Analysis</span>
             <select class="form-select  " id="calc" name="calc" onchange="OnChange()">
-              <option value="NDVI">Vegetation </option>
-              <option value="NDWI">NDWI</option>
-              <option selected>Mangrove Analysis</option>
-              <option value="ML Analysis">Mangrove Area Prediction</option>
+              <option id="Mangrove Analysis" value="Mangrove Analysis" selected>Mangrove Analysis</option>
+              <option id="ML Analysis" value="ML Analysis">Mangrove Area Prediction</option>
+              <option id="NDVI" value="NDVI">Vegetation index</option>
+              <option id="NDWI" value="NDWI">Moisture Index</option>
             </select>
           </div>
         </div>
@@ -243,7 +243,17 @@
         <canvas id="chartCanvas" style="height: 100%; width: 100%; display: none;"></canvas>
       </div>
     </div> -->
+    <div id="randomForest" class="col" style="display: none;max-height: 450px; overflow-y: auto; overflow-x: hidden;">
+      <div id="plot-container"></div>
+      </div>
+      
+      <div id="loader1" class="spinner-border text-primary d-block mx-auto my-5 d-none" role="status">
+        <span class="visually-hidden"></span>
+      </div>
+
     <div class="row" style="margin-top: 3rem;">
+
+
       <div id="mgr" class="ms-4 col" style="width: 50%; display: none; ">
         <canvas id="chartCanvas" class="w-100" style="height: 294px;"></canvas>
       </div>
@@ -262,9 +272,7 @@
         </table>
       </div>
     </div>
-    <div id="randomForest" class="col" style="display: none;">
-      <div id="plot-container"></div>
-    </div>
+    
   </div>
 
   <!-- </div> -->

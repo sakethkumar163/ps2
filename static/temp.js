@@ -36,8 +36,8 @@ function performTask(lab, ind) {
         labels: labels,
         datasets: []
       };
-      chart.options.plugins.title.text = (ind == "Mangrove Analysis") ? "Mangrove Area Change" : ind;
-      chart.options.scales.y.title.text = (ind != "Mangrove Analysis") ? "Avg "+ind :"Mangrove Area";
+      chart.options.plugins.title.text = (ind == "Mangrove Analysis") ? "Mangrove Area Change(sq.km)" : document.getElementById(ind).innerHTML;
+      chart.options.scales.y.title.text = (ind != "Mangrove Analysis") ? (ind != "ML Analysis")?"Avg " + document.getElementById(ind).innerHTML:"Actual Values" : "Mangrove Area (sq.km)";
       chart.update();
       taskExecuted = true;
       return;
@@ -74,7 +74,7 @@ function performTask(lab, ind) {
         y: {
           title: {
             display: true,
-            text:(ind != "Mangrove Analysis") ? "Avg "+ind :"Mangrove Area(sq.km)"
+            text:(ind != "Mangrove Analysis") ? (ind != "ML Analysis")?"Avg " + document.getElementById(ind).innerHTML:"Actual Values" : "Mangrove Area (sq.km)"
           }
         }
 
@@ -82,7 +82,7 @@ function performTask(lab, ind) {
       plugins: {
         title: {
           display: true,
-          text: (ind == "Mangrove Analysis") ? "Mangrove Area Change(sq.km)" : ind
+          text: (ind == "Mangrove Analysis") ? "Mangrove Area Change(sq.km)" : document.getElementById(ind).innerHTML
         }
       }
     };
@@ -211,10 +211,18 @@ function appendContent(newContent) {
   }catch(error){console.log("No Data Found")}
 }
 let klm = 0;
-let s=document.getElementById("tcont")
+let s=document.getElementById("randomForest")
+let s1=document.getElementById("mgr")
 function send_req(col, send_data) {
-  document.getElementById("loader").classList.remove("d-none");
-  s.scrollIntoView({behavior: 'smooth'})
+  
+  if(send_data["index"]=="ML Analysis"){
+    document.getElementById("loader1").classList.remove("d-none");
+    s.scrollIntoView({behavior: 'smooth'})
+  }
+  else{
+    document.getElementById("loader").classList.remove("d-none");
+    s1.scrollIntoView({behavior: 'smooth'})
+  }
   fetch('/my_flask_route', {
     method: 'POST',
     headers: {
@@ -248,11 +256,12 @@ function send_req(col, send_data) {
     }
     else if (data.plot) {
       document.getElementById("loader").classList.add("d-none");
-      performTask(data.points.labels, send_data['index']);
+      document.getElementById("loader1").classList.add("d-none");
       if (send_data['index'] != a) {
         a = send_data['index']
         taskExecuted = false
       }
+      performTask(data.points.labels, send_data['index']);
       
       const plotData = JSON.parse(data.plot);
       console.log(plotData)
@@ -299,7 +308,7 @@ function send_req(col, send_data) {
           borderColor: `${col}`,
           tension: 0.1
         }, data.labels)
-        let newContent = `<div id="openModalBtn${count}" class="fade-out" style="width: 48%;">
+        let newContent = `<div id="openModalBtn${count}" class="fade-out" style="${(send_data['index'] == "Mangrove Analysis") ? "" : "width:48%"}">
     <span class="badge text-bg-light" style="float: left; margin: 1.2rem 0rem;">${data.area},${send_data['index']}</span>
     <div style="position: relative;">
     <span class="maximize-icon"><i class="bi bi-zoom-in"></i></span>
@@ -308,18 +317,18 @@ function send_req(col, send_data) {
     </div>
   </div>`;
         appendContent(newContent);
-        if(send_data['index'] == "Mangrove Analysis"){
-          count++;
-          newContent = `<div id="openModalBtn${count}" class="fade-out" style="width: 48%;">
-          <span class="badge text-bg-light" style="float: left; margin: 1.2rem 0rem;">${data.area},${send_data['index']}</span>
-          <div style="position: relative;">
-          <span class="maximize-icon"><i class="bi bi-zoom-in"></i></span>
-          <img src="data:image/png;base64,${data.chman}"
-          style="width: 100%; height: 20rem; border: 2px solid ${col}; margin: 2rem 0rem; border-radius: 10px;">
-          </div>
-          </div>`;
-          appendContent(newContent);
-        }
+        // if(send_data['index'] == "Mangrove Analysis"){
+        //   count++;
+        //   newContent = `<div id="openModalBtn${count}" class="fade-out" style="width: 48%;">
+        //   <span class="badge text-bg-light" style="float: left; margin: 1.2rem 0rem;">${data.area},${send_data['index']}</span>
+        //   <div style="position: relative;">
+        //   <span class="maximize-icon"><i class="bi bi-zoom-in"></i></span>
+        //   <img src="data:image/png;base64,${data.chman}"
+        //   style="width: 100%; height: 20rem; border: 2px solid ${col}; margin: 2rem 0rem; border-radius: 10px;">
+        //   </div>
+        //   </div>`;
+        //   appendContent(newContent);
+        // }
       }
     }).catch(error => {
       console.log('An error occurred:', error);
@@ -365,6 +374,49 @@ function OnChange() {
     }
   } catch (error) { }
 }
+
+
+
+
+fetch('/data', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+})
+  .then(response => response.json())
+  .then(data => {
+    // for(let i in data){
+    //   console.log(i)
+    // }
+    console.log(data.data)
+    for(let i of data.data){
+      // var polygonCoords = [
+      //   [[80.06369921260253, 16.278761841360236],
+      //    [81.09135078500897, 16.280813604615744],
+      //    [81.09090724198668, 15.288158060683616],
+      //    [80.06824451551739, 15.286237505336244],
+      //    [80.06369921260253, 16.278761841360236]]
+      // ];
+      
+      // Create a Leaflet polygon
+      var reversedCoords = i.map(function(arr) {
+        return arr.map(function(coord) {
+            return [coord[1], coord[0]];
+        });
+    });
+      var polygon = L.polygon(reversedCoords, {color: 'aquamarine'}).addTo(map);
+      
+      // Fit the map bounds to the polygon
+      map.fitBounds(polygon.getBounds());
+    }
+  }).catch(error => {
+    document.getElementById("loader").classList.add("d-none");
+    displayalert("An Error Occured While Fetching Data")
+    console.log('An error occurred:', error);
+  });
+
+
 var count = 0
 // when a rectangle is drawn, add it to the drawnItems feature group
 map.on('draw:created', function (e) {
@@ -392,7 +444,8 @@ map.on('draw:created', function (e) {
     lng_max: lng_max,
     todate: todate,
     fromdate: fromdate,
-    index: index
+    index: index,
+    colo:layer.options.color
   }
   console.log(data)
   send_req(layer.options.color, data);
