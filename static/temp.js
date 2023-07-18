@@ -6,14 +6,14 @@ fd.max = today;
 
 let chart, data, labels;
 
-let map = L.map('map').setView([22.390472, 69.628927], 10);
+let map = L.map('map').setView([22.390472, 69.628927], 9);
 
 let taskExecuted = false;
 let a = ""
 let z = 1;
 
 function relocate(){
-  map.flyTo([22.390472, 69.628927], 10);
+  map.flyTo([22.390472, 69.628927], 9);
 }
 
 function performTask(lab, ind) {
@@ -405,10 +405,10 @@ fetch('/data', {
             return [coord[1], coord[0]];
         });
     });
-      var polygon = L.polygon(reversedCoords, {color: 'aquamarine'}).addTo(map);
+      var polygon = L.polygon(reversedCoords, {color: 'darkgrey'}).addTo(map);
       
       // Fit the map bounds to the polygon
-      map.fitBounds(polygon.getBounds());
+      // map.fitBounds(polygon.getBounds());
     }
   }).catch(error => {
     document.getElementById("loader").classList.add("d-none");

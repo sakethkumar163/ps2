@@ -73,59 +73,57 @@ def mangrove_analysis(dataset, mvi):
         # print()
     return data
 
-def mang_change(times, query):
-    # Load the data for the first time period
-    query['time'] = times[0]
-    ds1 = dc.load(**query)
+# def mang_change(times, query):
+#     # Load the data for the first time period
+#     query['time'] = times[0]
+#     ds1 = dc.load(**query)
 
 
-    # Compute the MVI for the first time period
-    mangrove1 = ((ds1.nir - ds1.green) / (ds1.swir_1 - ds1.green+0.5))*(1.5)
-    # Set threshold for mangrove detection
-    mangrove_thresh = 0.5
+#     # Compute the MVI for the first time period
+#     mangrove1 = ((ds1.nir - ds1.green) / (ds1.swir_1 - ds1.green+0.5))*(1.5)
+#     # Set threshold for mangrove detection
+#     mangrove_thresh = 0.5
 
-    # Create a mangrove mask
-    mangrove_mask1 = np.where(mangrove1 > mangrove_thresh, 1, 0)
+#     # Create a mangrove mask
+#     mangrove_mask1 = np.where(mangrove1 > mangrove_thresh, 1, 0)
 
-    # Load the data for the second time period
-    query['time'] = times[1]
-    ds2 = dc.load(**query)
+#     # Load the data for the second time period
+#     query['time'] = times[1]
+#     ds2 = dc.load(**query)
 
-    # Compute the MVI for the second time period
-    mangrove2 = ((ds2.nir - ds2.green) / (ds2.swir_1 - ds2.green+0.5))*(1.5)
-    # Create a mangrove mask
-    mangrove_mask2 = np.where(mangrove2 > mangrove_thresh, 1, 0)
+#     # Compute the MVI for the second time period
+#     mangrove2 = ((ds2.nir - ds2.green) / (ds2.swir_1 - ds2.green+0.5))*(1.5)
+#     # Create a mangrove mask
+#     mangrove_mask2 = np.where(mangrove2 > mangrove_thresh, 1, 0)
 
-    # Compute the change in mangrove extent
-    mangrove_change = mangrove_mask2 - mangrove_mask1
+#     # Compute the change in mangrove extent
+#     mangrove_change = mangrove_mask2 - mangrove_mask1
 
-    # Create a colormap
-    cmap = plt.get_cmap('PiYG')
+#     # Create a colormap
+#     cmap = plt.get_cmap('PiYG')
 
-    # Plot the change in mangrove extent
-    fig, ax = plt.subplots(figsize=(8, 8))
-    im = ax.imshow(mangrove_change[-1], cmap=cmap, vmin=-1, vmax=1)
-    ax.set_title(f'Change in Mangrove Extent from {times[0]} to {times[-1]}')
-    ax.set_xlabel('Easting')
-    ax.set_ylabel('Northing')
-    cbar = fig.colorbar(im, ax=ax)
-    cbar.ax.set_ylabel('Change in Mangrove Extent')
-    ax.legend(
-    [
-        Patch(facecolor='lime'),
-        Patch(facecolor='fuchsia'),
-        Patch(facecolor="palegoldenrod"),
-    ],
-    ["New mangroves", "Loss of mangroves", "Stable Mangroves"],
-    loc="lower right",
-)
-    img_buffer = io.BytesIO()
-    plt.savefig(img_buffer, format='png')
-    img_buffer.seek(0)
-    # plt.savefig('./static/my_plot.png')
-    # Serve the image file in the Flask app
-    img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
-    return img_base64
+#     # Plot the change in mangrove extent
+#     fig, ax = plt.subplots(figsize=(8, 8))
+#     im = ax.imshow(mangrove_change[-1], cmap=cmap, vmin=-1, vmax=1)
+#     # ax.set_title(f'Change in Mangrove Extent')
+#     cbar = fig.colorbar(im, ax=ax)
+#     # cbar.ax.set_ylabel('Change in Mangrove Extent')
+#     ax.legend(
+#     [
+#         Patch(facecolor='lime'),
+#         Patch(facecolor='fuchsia'),
+#         Patch(facecolor="palegoldenrod"),
+#     ],
+#     ["New mangroves", "Loss of mangroves", "Stable Mangroves"],
+#     loc="lower right",
+# )
+#     img_buffer = io.BytesIO()
+#     plt.savefig(img_buffer, format='png')
+#     img_buffer.seek(0)
+#     # plt.savefig('./static/my_plot.png')
+#     # Serve the image file in the Flask app
+#     img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
+#     return img_base64
 
 
 def get_area_name(latitude, longitude):
@@ -223,7 +221,13 @@ def mang_ml_analysis(ds, lat_range, lon_range ,colu):
             y = y_pred,
             name = "Mangrove Predicted",
             line=dict(color='black') 
-        )
+        ),
+        # go.Scatter(
+        #     x = df['2024-05'],
+        #     y = y_pred,
+        #     name = "Mangrove Predicted",
+        #     line=dict(color='black') 
+        # )
     ]
 
     print("Plot plotted")
@@ -413,9 +417,7 @@ def my_flask_function():
 
             # Plot the change in mangrove extent on the first subplot
             im_change = ax_change.imshow(mangrove_change[-1], cmap=cmap, vmin=-1, vmax=1)
-            ax_change.set_title(f'Change in Mangrove Extent from {times[0]} to {times[-1]}')
-            ax_change.set_xlabel('Easting')
-            ax_change.set_ylabel('Northing')
+            ax_change.set_title(f'Change in Mangrove Extent')
             cbar_change = fig.colorbar(im_change, ax=ax_change)
             cbar_change.ax.set_ylabel('Change in Mangrove Extent')
             ax_change.legend(
